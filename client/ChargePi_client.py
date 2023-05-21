@@ -7,22 +7,22 @@ from datetime import datetime
 from unsync import unsync
 from websockets import InvalidURI, ConnectionClosedError, ConnectionClosedOK
 from charge_point.data import logging_filter
-from charge_point.hardware.components import LCDModule, PN532Reader
+# from charge_point.hardware.components import LCDModule, PN532Reader
 from charge_point.v16.ChargePoint16 import ChargePointV16, enums
 from charge_point.v201.ChargePoint201 import ChargePointV201
 from charge_point import responses
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import websockets
 from string_utils import is_full_string
-from mfrc522 import SimpleMFRC522
+# from mfrc522 import SimpleMFRC522
 import charge_point.data.settings_manager as settings_reader
 import os
 
-lcd: LCDModule = None
+# lcd: LCDModule = None
 charge_point_reference = None
 logger = logging.getLogger('chargepi_logger')
 path = os.path.dirname(os.path.realpath(__file__))
-GPIO.setmode(GPIO.BCM)
+# GPIO.setmode(GPIO.BCM)
 
 
 @unsync
@@ -32,9 +32,9 @@ async def choose_protocol_version():
     charge_point_id: str = charge_point_info["id"]
     charge_point_uri: str = charge_point_info["server_uri"]
     # Setup logger
-    logging_filter.setup_logger(charge_point_info["log_server"], charge_point_id)
+    # logging_filter.setup_logger(charge_point_info["log_server"], charge_point_id)
     # Run RFID reader and LCD display in separate threads
-    lcd = LCDModule(hardware_info["lcd"])
+    # lcd = LCDModule(hardware_info["lcd"])
     protocol_version = charge_point_info["protocol_version"]
     # Check URL validity
     if parse.urlparse(charge_point_uri).path.endswith("/"):
@@ -46,7 +46,7 @@ async def choose_protocol_version():
             # Connect to the server using websockets.
             async with websockets.connect(f"ws://{charge_point_uri}/{charge_point_id}",
                                           subprotocols=[f"ocpp{protocol_version}"]) as ws:
-                logger.info(f"Choosing protocol version {protocol_version}")
+                # logger.info(f"Choosing protocol version {protocol_version}")
                 if protocol_version == "1.6":
                     # Create a singleton
                     ChargePointV16(charge_point_id, ws, charge_point_info, hardware_info)
@@ -58,24 +58,27 @@ async def choose_protocol_version():
                 else:
                     # If the version is not supported, exit
                     version_unsupported_str: str = f"Unsupported OCPP version: {protocol_version}"
-                    logger.debug(version_unsupported_str)
+                    # logger.debug(version_unsupported_str)
                     print(version_unsupported_str)
                     exit(-1)
                 # Start listening for requests and send boot notification to the server
-                display_current_status_LCD()
-                read_rfid(hardware_info)
+                # display_current_status_LCD()
+                # read_rfid(hardware_info)
                 await asyncio.gather(charge_point_reference.start(), charge_point_reference.send_boot_notification())
         except ConnectionClosedOK as closed_ok:
-            logger.error("Connection closed, no error", exc_info=closed_ok)
+            pass
+            # logger.error("Connection closed, no error", exc_info=closed_ok)
         except ConnectionClosedError as error:
-            logger.error("Connection closed with error", exc_info=error)
+            pass
+            # logger.error("Connection closed with error", exc_info=error)
         except InvalidURI as invalid_uri:
-            logger.error("Invalid URI specified, exiting", exc_info=invalid_uri)
+            # logger.error("Invalid URI specified, exiting", exc_info=invalid_uri)
             exit(-1)
         except KeyboardInterrupt:
             exit(-1)
         except Exception as ex:
-            logger.error("Unknown error", exc_info=ex)
+            # logger.error("Unknown error", exc_info=ex)
+            pass
         for thread in threads:
             try:
                 thread.future.cancel()
@@ -110,9 +113,10 @@ def get_reader(reader_info):
             return SimpleMFRC522()
         elif reader_info["reader_model"] == "PN532":
             try:
-                return PN532Reader(int(reader_info["reset_pin"]))
+                pass
+                # return PN532Reader(int(reader_info["reset_pin"]))
             except Exception as ex:
-                logger.error("Reader not found", exc_info=ex)
+                # logger.error("Reader not found", exc_info=ex)
                 print(ex)
                 return None
     return None
@@ -153,7 +157,7 @@ def read_rfid(charge_point_info: dict):
                 # Break the loop to end the thread and avoid performance issues
                 break
         except Exception as e:
-            logger.error("Exception while reading RFID", exc_info=e)
+            # logger.error("Exception while reading RFID", exc_info=e)
             print(str(e))
             asyncio.run(lcd.display_error(connector_id=-1, msg="Error reading card"))
             if isinstance(reader, PN532Reader):
@@ -183,7 +187,7 @@ async def handle_request(rfid_id: str):
                 await lcd.display_error(connector_id=connector_id, msg=response)
     except Exception as ex:
         print(f"Exception while handling tag request: {ex}")
-        logger.error("Exception while handling tag request", exc_info=ex)
+        # logger.error("Exception while handling tag request", exc_info=ex)
         await lcd.display_error(-1, str(ex))
 
 
@@ -193,16 +197,17 @@ def client_cleanup():
     Clean up before exiting
     :return:
     """
+    return
     global lcd, charge_point_reference
     try:
-        lcd.clear()
+        # lcd.clear()
         charge_point_reference.cleanup(reason=enums.Reason.powerLoss)
     except Exception as ex:
         print("Problem at cleanup: {ex}".format(ex=str(ex)))
-        logger.debug("Exception while cleaning up", exc_info=ex)
+        # logger.debug("Exception while cleaning up", exc_info=ex)
     finally:
-        GPIO.cleanup()
-
+        # GPIO.cleanup()
+        pass
 
 if __name__ == '__main__':
     choose_protocol_version().result()
