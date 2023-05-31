@@ -27,7 +27,7 @@
     },
     "HeartbeatInterval": {
       "readOnly": false,
-      "value": "60"
+      "value": "10"
     },
     "LocalAuthorizeOffline": {
       "readOnly": false,

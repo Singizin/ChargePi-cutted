@@ -2,8 +2,8 @@
   "charge_point": {
     "info": {
       "vendor": "UL FE",
-      "model": "ChargePi",
-      "id": "ChargePi",
+      "model": "ChargePi1",
+      "id": "ChargePi1",
       "protocol_version": "1.6",
       "current_client_version": "1.0",
       "target_client_version": "1.0",

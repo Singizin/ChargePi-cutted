@@ -25,11 +25,15 @@ class ConnectorV16(ChargingConnector):
         if self.is_available() or self.is_preparing() or not self.is_reserved(id_tag):
             try:
                 job_id: str = f"cancel_reservation_{self.evse_id}_{self.connector_id}"
-                self._charging_scheduler.get_job(job_id).remove()
+                print(f'+++ {__name__} start_charging() {job_id=}, {self._charging_scheduler.get_job(job_id)=}')
+                job = self._charging_scheduler.get_job(job_id)
+                if job != None:
+                    job.remove()
             except Exception as ex:
                 logger.debug(f"Cancelling reservation failed at {self.connector_id}")
                 print(ex)
             response = self._ChargingSession.start_charging_session(tag_id=id_tag, transaction_id=transaction_id)
+            print(f'+++ {__name__} start_charging() {response=}')
             if response == SessionResponses.SessionStartSuccess:
                 self._relay.on()
                 if isinstance(self._power_meter, PowerMeter):

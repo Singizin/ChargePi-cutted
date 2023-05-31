@@ -6,7 +6,7 @@
         {
           "id": 1,
           "type": "Schuko",
-          "status": "Available",
+          "status": "Preparing",
           "session": {
             "is_active": false,
             "transaction_id": "",

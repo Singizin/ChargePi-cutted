@@ -289,7 +289,7 @@ class ChargePointV201(cp201):
         if self.hardware_info["LED_indicator"]["type"] == "WS281x":
             command = f"sudo python3 {_path}/../hardware/leds/LEDStrip.py {colors}"
             print(command)
-            subprocess.Popen(command, shell=True)
+            # subprocess.Popen(command, shell=True)
         elif self.hardware_info["LED_indicator"]["type"] == "simple":
             pass
 

@@ -26,6 +26,7 @@ import wget
 from charge_point.data.update_manager import update_target_version, get_next_version, perform_update
 
 logger = logging.getLogger('chargepi_logger')
+logging.basicConfig(level=logging.INFO)
 _path = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -48,6 +49,7 @@ class ChargePointV16(cp):
         if ChargePointV16.__instance is not None:
             return
         self.__charging_configuration: ConfigurationManager = ConfigurationManager()
+        print(self.__charging_configuration)
         super().__init__(id, connection,
                          int(self.__charging_configuration.get_configuration_variable_value("ConnectionTimeOut")))
         self.__scheduler: AsyncIOScheduler = SchedulerManager.getScheduler()
@@ -77,6 +79,7 @@ class ChargePointV16(cp):
         # Sort by EVSE ID
         # self._ChargePointConnectors.sort(key=(lambda conn: (conn.evse_id, conn.connector_id)))
         self._update_LED_status(self._get_LED_colors())
+        print(self._ChargePointConnectors)
 
     def __add_connector(self, connector_id: int, connector_type: str, power_meter_settings: dict, relay_settings: dict):
         """
@@ -250,6 +253,7 @@ class ChargePointV16(cp):
             elif connector.is_unavailable():
                 status_color = LEDStrip.ORANGE
             colors += f" {status_color}"
+        print(f'+++{__name__} _get_LED_colors(): {colors=}')
         return colors
 
     def _update_LED_status(self, colors: str):
@@ -259,9 +263,10 @@ class ChargePointV16(cp):
         :return:
         """
         if self.hardware_info["LED_indicator"]["type"] == "WS281x":
-            command = f"sudo python3 {_path}/../hardware/leds/LEDStrip.py{colors}"
-            print(command)
-            subprocess.Popen(command, shell=True)
+            # command = f"sudo python3 {_path}/../hardware/leds/LEDStrip.py{colors}"
+            # print(command)
+            # subprocess.Popen(command, shell=True)
+            print(f"+++ {__name__} _update_LED_status() {status=}")
         elif self.hardware_info["LED_indicator"]["type"] == "simple":
             pass
 
@@ -335,6 +340,7 @@ class ChargePointV16(cp):
                                                    connector_id=connector_id)
             server_response = await self.call(request)
             tag_info = server_response.id_tag_info
+            print(f"+++ {__name__} __start_charging_connector_with_id() {tag_info=}")
             # If the server accepts, start charging
             if tag_info["status"] == enums.RemoteStartStopStatus.accepted or tag_info["status"] == "ConcurrentTx":
                 connector_response = connector.start_charging(transaction_id=str(server_response.transaction_id),
@@ -443,6 +449,7 @@ class ChargePointV16(cp):
         Connect and notify the central system at boot. Perform self diagnostics and restore any transactions.
         :return:
         """
+        print(f'{__name__} send_boot_notification')
         request = call.BootNotificationPayload(charge_point_vendor=self.charge_point_info["vendor"],
                                                charge_point_model=self.charge_point_info["model"])
         server_response = await self.call(request)
@@ -535,6 +542,7 @@ class ChargePointV16(cp):
         :return:
         """
         connector = self.__find_connector_with_id(connector_id)
+        # Эта отрабатывает
         if isinstance(connector, ConnectorV16):
             changing_status_str: str = f"Changing status to {connector_status.value}"
             print(changing_status_str)
@@ -638,6 +646,9 @@ class ChargePointV16(cp):
         :return:
         """
         print("Sent heartbeat")
+        for connector in self._ChargePointConnectors:
+            print(f"+++ {__name__} heartbeat() {connector.__dict__=}\n"
+                  f"+++ {connector.ChargingSession.__dict__=}")
         await self.call(call.HeartbeatPayload())
 
     @on(action.RemoteStartTransaction)
@@ -649,20 +660,22 @@ class ChargePointV16(cp):
         :return:
         """
         remote_transaction_log: str = f"Requested remote start for tag {id_tag} at connector {connector_id}"
-        logger.debug(remote_transaction_log)
         print(remote_transaction_log)
+        logger.debug(remote_transaction_log)
         if connector_id == 0:
             connector = self.__find_available_connector()
             connector_id = connector.connector_id
         else:
             connector = self.__find_connector_with_id(connector_id)
         if isinstance(connector, ConnectorV16) and connector.is_available():
+            print(f"{connector.connector_id=} {connector.is_available()=}")
             self.__scheduler.add_job(self.__start_charging_connector_with_id, 'date',
                                      run_date=(datetime.now() + timedelta(seconds=3)),
                                      args=[id_tag, connector_id, True],
                                      id="StartRemoteTx")
             return call_result.RemoteStartTransactionPayload(enums.RemoteStartStopStatus.accepted)
         return call_result.RemoteStartTransactionPayload(enums.RemoteStartStopStatus.rejected)
+
 
     @on(action.RemoteStopTransaction)
     async def remote_stop_transaction(self, transaction_id: int):
@@ -672,9 +685,10 @@ class ChargePointV16(cp):
         :return: Accepted or Rejected constants
         """
         remote_transaction_log: str = f"Requested remote stop for transaction {transaction_id}"
+        print(f"+++ {__name__} remote_stop_transaction {remote_transaction_log=}")
         logger.debug(remote_transaction_log)
-        print(remote_transaction_log)
         connector = self.__find_connector_with_transaction_id(transaction_id=str(transaction_id))
+        print(f"+++ {__name__} remote_stop_transaction {connector=}")
         if isinstance(connector, ConnectorV16):
             self.__scheduler.add_job(self.__stop_charging_connector_with_transaction, 'date',
                                      run_date=(datetime.now() + timedelta(seconds=3)),
@@ -888,12 +902,14 @@ class ChargePointV16(cp):
             return call_result.SendLocalListPayload(enums.UpdateStatus.notSupported)
 
     def __soft_reset(self):
-        self.cleanup(reason=reason.softReset)
-        os.execv(sys.executable, ['sudo python3'] + sys.argv)
+        print(f'+++ {__name__} __soft_reset()')
+        # self.cleanup(reason=reason.softReset)
+        # os.execv(sys.executable, ['sudo python3'] + sys.argv)
 
     def __hard_reset(self):
-        self.cleanup(reason=reason.hardReset)
-        os.system("sudo reboot")
+        print(f'+++ {__name__} __hard_reset()')
+        # self.cleanup(reason=reason.hardReset)
+        # os.system("sudo reboot")
 
     @on(action.Reset)
     async def reset_request(self, type: str):

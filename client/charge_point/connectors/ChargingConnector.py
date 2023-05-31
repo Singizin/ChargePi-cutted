@@ -27,13 +27,15 @@ class ChargingConnector:
         self._max_charging_time: int = max_charging_time
         self._stop_transaction_function = stop_transaction_function
         self._send_meter_values_function = send_meter_values_function
-        self._power_meter: PowerMeter = None
+        self._power_meter: PowerMeter = PowerMeter(pin=power_meter_pin,
+                                                   bus=power_meter_bus)
         self._power_meter_min_power = power_meter_min_power
         if power_meter_pin > 0:
             self._power_meter = PowerMeter(power_meter_pin, power_meter_bus,
                                            power_meter_voltage_divider_offset,
                                            power_meter_shunt_offset)
         self._ChargingSession: ChargingSession = ChargingSession()
+        self.ChargingSession: ChargingSession = self._ChargingSession
         self._Reservation: Reservation = None
         self._charging_scheduler: AsyncIOScheduler = SchedulerManager.getScheduler()
         self._connector_status = None

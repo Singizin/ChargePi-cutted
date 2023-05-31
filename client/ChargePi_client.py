@@ -29,6 +29,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 async def choose_protocol_version():
     global lcd, charge_point_reference
     charge_point_info, hardware_info = await settings_reader.read_settings()
+    print(charge_point_info)
     charge_point_id: str = charge_point_info["id"]
     charge_point_uri: str = charge_point_info["server_uri"]
     # Setup logger
@@ -43,13 +44,17 @@ async def choose_protocol_version():
     threads = []
     while True:
         try:
+
             # Connect to the server using websockets.
+            print(f"ws://{charge_point_uri}/{charge_point_id}")
             async with websockets.connect(f"ws://{charge_point_uri}/{charge_point_id}",
                                           subprotocols=[f"ocpp{protocol_version}"]) as ws:
                 # logger.info(f"Choosing protocol version {protocol_version}")
                 if protocol_version == "1.6":
+
                     # Create a singleton
                     ChargePointV16(charge_point_id, ws, charge_point_info, hardware_info)
+                    # print(ChargePointV16.__dict__)
                     charge_point_reference = ChargePointV16.getInstance()
                 elif protocol_version == "2.0.1":
                     # Create a singleton
@@ -78,12 +83,14 @@ async def choose_protocol_version():
             exit(-1)
         except Exception as ex:
             # logger.error("Unknown error", exc_info=ex)
+            print(ex)
             pass
         for thread in threads:
             try:
                 thread.future.cancel()
                 thread.thread.set_exception()
             except Exception:
+
                 pass
         await asyncio.sleep(10)
 
