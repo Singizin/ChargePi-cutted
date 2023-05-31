@@ -27,6 +27,7 @@ class ConnectorV16(ChargingConnector):
                 job_id: str = f"cancel_reservation_{self.evse_id}_{self.connector_id}"
                 print(f'+++ {__name__} start_charging() {job_id=}, {self._charging_scheduler.get_job(job_id)=}')
                 job = self._charging_scheduler.get_job(job_id)
+                # TODO: почитать стандарт, почему удаленный старт только по резервации или что за JOB????
                 if job != None:
                     job.remove()
             except Exception as ex:

@@ -379,10 +379,12 @@ class ConnectorSettingsManager:
                     for connector in evse["connectors"]:
                         if connector["id"] == connector_id:
                             connector["status"] = status
+            print(f'+++ {__name__} update_connector_status() {file=}')
             await ConnectorSettingsManager.__write_to_file(file)
 
     @staticmethod
     async def __write_to_file(content):
+        print(f"+++ {__name__} __write_to_file() {content=}")
         async with a_open(ConnectorSettingsManager.file_name, "w") as w_connector_settings:
             await w_connector_settings.write(json.dumps(content, indent=2))
             await w_connector_settings.close()

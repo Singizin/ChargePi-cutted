@@ -6,9 +6,9 @@
         {
           "id": 1,
           "type": "Schuko",
-          "status": "Preparing",
+          "status": "Available",
           "session": {
-            "is_active": false,
+            "is_active": true,
             "transaction_id": "",
             "tag_id": "",
             "started": "",
@@ -32,7 +32,7 @@
           "type": "Schuko",
           "status": "Available",
           "session": {
-            "is_active": false,
+            "is_active": true,
             "transaction_id": "",
             "tag_id": "",
             "started": "",

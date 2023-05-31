@@ -39,6 +39,7 @@ class Relay:
         #     self._relay_state = GPIO.HIGH
         # elif self._inverse_logic:
         #     self.off()
+        print(f'+++ {__name__} relay_on()')
         pass
 
     def off(self):
@@ -51,6 +52,7 @@ class Relay:
         #     self._relay_state = GPIO.LOW
         # elif self._inverse_logic:
         #     self.on()
+        print(f'+++ {__name__} relay_off()')
         pass
 
     def toggle(self):
@@ -187,6 +189,8 @@ class PowerMeter:
         pass
 
     def reset(self):
+        print(f'+++ {__name__} PowerMeter reset()')
+        return
         self._send_to_register(self.CONFIG_REGISTER, self.CHIP_RESET)
         try:
             # GPIO.output(self.pin, GPIO.LOW)
@@ -247,6 +251,7 @@ class PowerMeter:
         Get current measured in the last conversion cycle in Amps (A).
         :return: Electric current value
         """
+        return 123.0
         current_value_raw = self.__read_value_from_register(self.LAST_CURRENT_REGISTER)
         return self.__signed_to_float(current_value_raw) * self.CURRENT_MULTIPLIER
 
@@ -263,6 +268,7 @@ class PowerMeter:
         Get instantaneous power from the last conversion cycle in Watts (W).
         :return: Power value
         """
+        return 50.0
         power_value_raw = self.__read_value_from_register(self.LAST_POWER_REGISTER)
         return self.__signed_to_float(power_value_raw) * self.POWER_MULTIPLIER
 
