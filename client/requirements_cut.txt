@@ -4,7 +4,9 @@ attrs==23.1.0
 graypy==2.1.0
 jsonschema==3.2.0
 ocpp==0.8.3
+pymodbus==3.0.2
 pyrsistent==0.19.3
+pyserial==3.5
 python-string-utils==1.0.0
 pytz==2023.3
 semantic-version==2.10.0

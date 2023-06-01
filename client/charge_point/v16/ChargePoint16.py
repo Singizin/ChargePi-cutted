@@ -24,6 +24,7 @@ from charge_point.data.auth.authorization_cache import AuthorizationCache as Aut
 from charge_point.v16.configuration.configuration_manager import ConfigurationManager
 import wget
 from charge_point.data.update_manager import update_target_version, get_next_version, perform_update
+from charge_point.ModbusOCPP import ModbusTranslator
 
 logger = logging.getLogger('chargepi_logger')
 logging.basicConfig(level=logging.INFO)
@@ -78,8 +79,17 @@ class ChargePointV16(cp):
                                  power_meter_settings=power_meter_settings)
         # Sort by EVSE ID
         # self._ChargePointConnectors.sort(key=(lambda conn: (conn.evse_id, conn.connector_id)))
-        self._update_LED_status(self._get_LED_colors())
         print(self._ChargePointConnectors)
+        self._update_LED_status(self._get_LED_colors())
+
+        MODBUS_PARAM = [
+            False,       # modbus_emulation,
+            'COM7',     # SERIAL_PORT,
+            19200       # BAUD
+        ]
+
+        self.modbus = ModbusTranslator.Modbus(MODBUS_PARAM)
+        self.modbus.set_cp(None)
 
     def __add_connector(self, connector_id: int, connector_type: str, power_meter_settings: dict, relay_settings: dict):
         """
@@ -646,6 +656,9 @@ class ChargePointV16(cp):
         :return:
         """
         print("Sent heartbeat")
+        print('╔═══ modbus ═')
+        print(f'╟ {self.modbus.from_micro}')
+        print('╚═══')
         for connector in self._ChargePointConnectors:
             print(f"+++ {__name__} heartbeat() {connector.__dict__=}\n"
                   f"+++ {connector.ChargingSession.__dict__=}")
