@@ -68,19 +68,6 @@ class ChargePointV16(cp):
         self.__authorization_cache.set_max_cached_tags(
             self.__charging_configuration.get_configuration_variable_value("LocalListMaxLength") == "true")
         connectors = ConnectorSettingsManager.get_connectors_from_evse(1)
-        # Add all the connectors specified in the connectors.json
-        for connector in connectors:
-            relay_settings: dict = connector["relay"]
-            power_meter_settings: dict = connector["power_meter"]
-            power_meter_settings["min_power"] = hardware_info["min_power"]
-            self.__add_connector(connector_id=connector["id"],
-                                 connector_type=connector["type"],
-                                 relay_settings=relay_settings,
-                                 power_meter_settings=power_meter_settings)
-        # Sort by EVSE ID
-        # self._ChargePointConnectors.sort(key=(lambda conn: (conn.evse_id, conn.connector_id)))
-        print(self._ChargePointConnectors)
-        self._update_LED_status(self._get_LED_colors())
 
         MODBUS_PARAM = [
             False,       # modbus_emulation,
@@ -89,10 +76,32 @@ class ChargePointV16(cp):
         ]
 
         self.modbus = ModbusTranslator.Modbus(MODBUS_PARAM)
+
+        # Add all the connectors specified in the connectors.json
+        for connector in connectors:
+            relay_settings: dict = connector["relay"]
+            power_meter_settings: dict = connector["power_meter"]
+            power_meter_settings["min_power"] = hardware_info["min_power"]
+            self.__add_connector(connector_id=connector["id"],
+                                 connector_type=connector["type"],
+                                 relay_settings=relay_settings,
+                                 power_meter_settings=power_meter_settings,
+                                 modbus=self.modbus)
+        # Sort by EVSE ID
+        # self._ChargePointConnectors.sort(key=(lambda conn: (conn.evse_id, conn.connector_id)))
+        print(self._ChargePointConnectors)
+        for connector in self._ChargePointConnectors:
+            connector
+        self._update_LED_status(self._get_LED_colors())
+
+
         self.modbus.set_cp(self)
         self.modbus.set_connectors(self._ChargePointConnectors)
+        print(f"modbussss {__name__} {self.modbus}")
 
-    def __add_connector(self, connector_id: int, connector_type: str, power_meter_settings: dict, relay_settings: dict):
+
+    def __add_connector(self, connector_id: int, connector_type: str, power_meter_settings: dict, relay_settings: dict,
+                        modbus):
         """
         Add a new Connector to the list of connectors if it doesn't exist already.
         Connector ID must be greater than the previous' connector ID.
@@ -117,7 +126,8 @@ class ChargePointV16(cp):
                                                    power_meter_min_power=float(power_meter_settings["min_power"]),
                                                    max_charging_time=self.charge_point_info["max_charging_time"],
                                                    stop_transaction_function=self.__stop_charging_connector_with_id,
-                                                   send_meter_values_function=self.send_meter_values)
+                                                   send_meter_values_function=self.send_meter_values,
+                                                   modbus=modbus)
             self._ChargePointConnectors.append(connector)
 
     @property
@@ -285,13 +295,21 @@ class ChargePointV16(cp):
     def is_available(self) -> bool:
         return self.__is_available
 
-    async def handle_charging_request(self, id_tag: str) -> (int, str):
+    def handle_charging_request_sync(self, connector_id: int, id_tag: str='fisrt'):
+        self.__scheduler.add_job(self.handle_charging_request, args=[connector_id])
+
+    async def handle_charging_request(self, connector_id: int, id_tag: str='fisrt') -> (int, str):
         """
         Handle a charging request initiated by the tag reader.
         Stop charging if it finds a connector with the same tag ID, else it will start charging.
         :param id_tag: Tag ID
         :return: Connector ID and response
         """
+        if connector_id == 1:
+            id_tag = "first"
+        if connector_id == 2:
+            id_tag == "second"
+        print(f"+++ {__name__} handle_charging_request() {id_tag=}")
         handle_tag_str: str = f"Handling request for tag {id_tag}"
         logger.info(handle_tag_str)
         print(handle_tag_str)

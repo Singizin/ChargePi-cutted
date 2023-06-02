@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 from aiofiles import open as a_open
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+from charge_point.ModbusOCPP.ModbusTranslator import Modbus
 from charge_point.data.sessions import ChargingSession, Reservation
 from charge_point.hardware.components import Relay, PowerMeter
 from charge_point.scheduler import SchedulerManager
@@ -19,11 +21,12 @@ class ChargingConnector:
                  power_meter_voltage_divider_offset: float, power_meter_shunt_offset: float,
                  power_meter_min_power: float,
                  max_charging_time: int,
-                 stop_transaction_function, send_meter_values_function):
+                 stop_transaction_function, send_meter_values_function,
+                 modbus):
         self.evse_id: int = evse_id
         self.connector_id: int = connector_id
         self._type: str = conn_type
-        self._relay: Relay = Relay(pin=relay_pin, relay_state=relay_state)
+        self._relay: Relay = Relay(pin=connector_id, relay_state=relay_state, modbus=modbus)
         self._max_charging_time: int = max_charging_time
         self._stop_transaction_function = stop_transaction_function
         self._send_meter_values_function = send_meter_values_function

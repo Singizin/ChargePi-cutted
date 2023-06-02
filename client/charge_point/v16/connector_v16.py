@@ -13,10 +13,12 @@ class ConnectorV16(ChargingConnector):
                  power_meter_pin: int, power_meter_bus: int, power_meter_voltage_divider_offset: float,
                  power_meter_shunt_offset: float, power_meter_min_power: float,
                  max_charging_time: int, stop_transaction_function,
-                 send_meter_values_function):
+                 send_meter_values_function,
+                 modbus):
         super().__init__(evse_id, connector_id, conn_type, relay_pin, relay_state, power_meter_pin, power_meter_bus,
                          power_meter_voltage_divider_offset, power_meter_shunt_offset, power_meter_min_power,
-                         max_charging_time, stop_transaction_function, send_meter_values_function)
+                         max_charging_time, stop_transaction_function, send_meter_values_function,
+                         modbus)
         self.set_status(enums.ChargePointStatus.available)
 
     def start_charging(self, id_tag: str, transaction_id: str = "", meter_sample_time: int = 60,

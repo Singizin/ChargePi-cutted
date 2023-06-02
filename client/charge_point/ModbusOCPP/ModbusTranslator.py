@@ -27,7 +27,20 @@ if TYPE_CHECKING:
 
 
 class Modbus:
+
+    __instance = None
+
+    @staticmethod
+    def getInstance():
+        if Modbus.__instance is not None:
+            return Modbus.__instance
+        else:
+            raise Exception("Not initialized")
+
     def __init__(self, modbus_param):
+        if Modbus.__instance is not None:
+            return
+
         self.from_micro = md.from_micro
         self.cp: Union['ChargePointV16', None] = None
         self.emulate_mode = modbus_param[0]
@@ -171,7 +184,6 @@ class Modbus:
         self.cp.send_start_transaction_sync(connector_id)
 
     def callback_handle_charging_request(self, connector_id: int):
-        return
         self.cp.handle_charging_request_sync(connector_id)
 
     def callback_stop_transaction(self, connector_id: int):
