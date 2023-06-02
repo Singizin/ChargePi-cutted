@@ -89,7 +89,8 @@ class ChargePointV16(cp):
         ]
 
         self.modbus = ModbusTranslator.Modbus(MODBUS_PARAM)
-        self.modbus.set_cp(None)
+        self.modbus.set_cp(self)
+        self.modbus.set_connectors(self._ChargePointConnectors)
 
     def __add_connector(self, connector_id: int, connector_type: str, power_meter_settings: dict, relay_settings: dict):
         """

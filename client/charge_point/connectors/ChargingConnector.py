@@ -29,6 +29,7 @@ class ChargingConnector:
         self._send_meter_values_function = send_meter_values_function
         self._power_meter: PowerMeter = PowerMeter(pin=power_meter_pin,
                                                    bus=power_meter_bus)
+        self.power_value_from_micro = 0
         self._power_meter_min_power = power_meter_min_power
         if power_meter_pin > 0:
             self._power_meter = PowerMeter(power_meter_pin, power_meter_bus,

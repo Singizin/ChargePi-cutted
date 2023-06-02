@@ -22,19 +22,20 @@ from . import GB_T_Regisers as GbTRegs
 
 #from backend
 if TYPE_CHECKING:
-    from charge_point.v16 import ChargePoint16
+    from charge_point.v16.ChargePoint16 import ChargePointV16
+    from charge_point.v16.connector_v16 import ConnectorV16
 
 
 class Modbus:
     def __init__(self, modbus_param):
         self.from_micro = md.from_micro
-        self.cp: Union['ChargePoint16', None] = None
+        self.cp: Union['ChargePointV16', None] = None
         self.emulate_mode = modbus_param[0]
         self.SERIAL_PORT = modbus_param[1]
         self.BAUD = modbus_param[2]
 
-    def set_cp(self, cp):
-        self.cp = cp
+    def set_cp(self, cp: 'ChargePointV16'):
+        self.cp : 'ChargePointV16' = cp
 
         self.hmi = None
         # self.gb_t = None
@@ -69,6 +70,9 @@ class Modbus:
 
         self.transaction_id_cnt = 0
 
+    def set_connectors(self, connectors: list['ConnectorV16']):
+        self.connectors = connectors
+        print(f'mmm {__name__} {self.connectors}')
 
     def print_state(self):
         print(self.__dict__)
@@ -163,15 +167,19 @@ class Modbus:
         pass
 
     def callback_start_transaction(self, connector_id: int):
+        return
         self.cp.send_start_transaction_sync(connector_id)
 
     def callback_handle_charging_request(self, connector_id: int):
+        return
         self.cp.handle_charging_request_sync(connector_id)
 
     def callback_stop_transaction(self, connector_id: int):
+        return
         self.cp.send_stop_transaction(connector_id)
 
     def callback_status_notification(self, connector_id: int):
+        return
         if self.cp:
             self.cp.send_status_notification_sync(connector_id)
 
@@ -183,7 +191,7 @@ class Modbus:
 
     def Connector0_DataFill(self, modbus_data: dict[str, int]):
 
-        md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.POWER_ACTIVE_IMPORT] = str(random.randint(100,200))
+        # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.POWER_ACTIVE_IMPORT] = str(random.randint(100,200))
         # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CHARGE_POINT_MODEL]  = 'MODEL_NSTU' # 'CHAdeMO'
         # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.SOC]                 = str(modbus_data['ID_102_CHARGED_RATE']) # уровень заряда
         # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CURRENT_IMPORT]      = str(modbus_data['ID_109_PRESENT_CHARGING_CURRENT'])
@@ -318,7 +326,7 @@ class Modbus:
 
     def on_electro_meter_data_update(self, modbus_data: dict[str, int]):
         if len(modbus_data) == 0:
-            md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.POWER_ACTIVE_IMPORT] = str(random.randint(100,200))
+            # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.POWER_ACTIVE_IMPORT] = str(random.randint(100,200))
             return
         
             # CHARGE_POINT_MODEL: 'FMA',
@@ -328,6 +336,9 @@ class Modbus:
         md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.SOC] = str(0)   # SOC: 78,
         md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CURRENT_IMPORT] = str(modbus_data[ElMeterRegs.KEY_CURRENT_A])
         md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.VOLTAGE] = str(modbus_data[ElMeterRegs.KEY_VOLTAGE_AN])
+        self.connectors[0].power_value_from_micro= str(modbus_data[ElMeterRegs.KEY_VOLTAGE_AN])
+         # = str(modbus_data.get(ElMeterRegs.KEY_VOLTAGE_AN))
+
 
         md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CHARGE_POINT_STATUS]     = enums.ChargePointStatus.available
         md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CHARGE_POINT_ERROR_CODE] = enums.ChargePointErrorCode.noError
