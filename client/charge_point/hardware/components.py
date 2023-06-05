@@ -9,6 +9,8 @@ import time
 # import busio
 from string_utils import is_full_string
 
+from charge_point.ModbusOCPP.ModbusTranslator import Modbus
+
 
 # from digitalio import DigitalInOut
 # from adafruit_pn532.i2c import PN532_I2C
@@ -20,10 +22,12 @@ class Relay:
     Performs on and off actions and tracks it's state.
     """
 
-    def __init__(self, pin: int, relay_state: int):
+    def __init__(self, pin: int, relay_state: int, modbus):
         self._pin = pin
         self._relay_state = relay_state
         self._inverse_logic = False
+        self.modbus = modbus
+        print(f'+++ relay Init() {pin=}')
         # GPIO.setup(self._pin, GPIO.OUT)
         # if relay_state == GPIO.HIGH:
         #     self._inverse_logic = True
@@ -39,7 +43,8 @@ class Relay:
         #     self._relay_state = GPIO.HIGH
         # elif self._inverse_logic:
         #     self.off()
-        print(f'+++ {__name__} relay_on()')
+        print(f'+++ {__name__} relay_on() {self._pin=}')
+        self.modbus.write_charge_enable(connector_id=self._pin, value=True)
         pass
 
     def off(self):
@@ -52,7 +57,8 @@ class Relay:
         #     self._relay_state = GPIO.LOW
         # elif self._inverse_logic:
         #     self.on()
-        print(f'+++ {__name__} relay_off()')
+        print(f'+++ {__name__} relay_off() {self._pin=}')
+        self.modbus.write_charge_enable(connector_id=self._pin, value=False)
         pass
 
     def toggle(self):
