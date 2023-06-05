@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import time
 import os
 import sys
@@ -25,8 +26,64 @@ from charge_point.v16.configuration.configuration_manager import ConfigurationMa
 import wget
 from charge_point.data.update_manager import update_target_version, get_next_version, perform_update
 
-logger = logging.getLogger('chargepi_logger')
-logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger('chargepi_logger')
+logger = logging.getLogger()
+# def get_logger_filename(filename = '') -> str:
+#     print(f"{filename=}")
+#     actual_date = datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
+#     file_path, file_type = "charge_point/logs/logs", ".txt"
+#
+#     return f"{file_path}_{actual_date}{file_type}"
+#
+# logging.basicConfig(filename=get_logger_filename(), encoding='utf-8', level=logging.DEBUG)
+# logger_time_handler = TimedRotatingFileHandler(filename=get_logger_filename(), when='s',
+#                                                interval=10,
+#                                                backupCount=5)
+# logger_time_handler.namer = get_logger_filename
+#
+# logger.addHandler(logger_time_handler)
+#
+# logging.info('FIRST MESSAGE\n')
+
+def get_filename(filename):
+    print(f"{filename=}")
+    # Get logs directory
+    log_directory = os.path.split(filename)[0]
+
+    # Get file extension (also it's a suffix's value (i.e. ".20181231")) without dot
+    date = os.path.splitext(filename)[1][1:]
+
+    # Create new file name
+    filename = os.path.join(log_directory, date)
+
+    # I don't want to add index if only one log file will exists for date
+    if not os.path.exists('{}.log'.format(filename)):
+        return '{}.log'.format(filename)
+
+    # Create new file name with index
+    index = 0
+    f = '{}.{}.log'.format(filename, index)
+    while os.path.exists(f):
+        index += 1
+        f = '{}.{}.log'.format(filename, index)
+    return f
+
+
+format = u'%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s'
+logger.setLevel(logging.DEBUG)
+
+# new file every minute
+rotation_logging_handler = TimedRotatingFileHandler('charge_point/logs/log',
+                               when='s',
+                               interval=10,
+                               backupCount=5)
+rotation_logging_handler.setLevel(logging.DEBUG)
+rotation_logging_handler.setFormatter(logging.Formatter(format))
+rotation_logging_handler.suffix = '%Y%m%d_%H-%M-%S'
+rotation_logging_handler.namer = get_filename
+
+logger.addHandler(rotation_logging_handler)
+
 _path = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -675,7 +732,6 @@ class ChargePointV16(cp):
                                      id="StartRemoteTx")
             return call_result.RemoteStartTransactionPayload(enums.RemoteStartStopStatus.accepted)
         return call_result.RemoteStartTransactionPayload(enums.RemoteStartStopStatus.rejected)
-
 
     @on(action.RemoteStopTransaction)
     async def remote_stop_transaction(self, transaction_id: int):
