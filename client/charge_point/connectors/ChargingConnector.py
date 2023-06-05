@@ -1,5 +1,7 @@
+import asyncio
 import json
 import os
+import random
 from datetime import datetime
 from aiofiles import open as a_open
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -7,6 +9,15 @@ from charge_point.data.sessions import ChargingSession, Reservation
 from charge_point.hardware.components import Relay, PowerMeter
 from charge_point.scheduler import SchedulerManager
 
+
+def decorator_logger(func):
+    async def wrapper(*args):
+        print(f"- decorator_logger start {func.__name__}() -\n")
+        await asyncio.sleep(random.randint(5, 10))
+        await func(*args)
+        print(f"- decorator_logger end {func.__name__}() -\n")
+
+    return wrapper
 
 class ChargingConnector:
     """
@@ -300,6 +311,7 @@ class ConnectorSettingsManager:
     path = os.path.dirname(os.path.realpath(__file__))
     file_name = "{path}/connectors.json".format(path=path)
 
+
     @staticmethod
     def get_evses() -> list:
         """
@@ -370,6 +382,7 @@ class ConnectorSettingsManager:
         return {}
 
     @staticmethod
+    @decorator_logger
     async def update_connector_status(evse_id: int, connector_id: int, status: str):
         async with a_open(ConnectorSettingsManager.file_name, "r") as connector_settings:
             file = json.loads(await connector_settings.read())
@@ -383,13 +396,16 @@ class ConnectorSettingsManager:
             await ConnectorSettingsManager.__write_to_file(file)
 
     @staticmethod
+    @decorator_logger
     async def __write_to_file(content):
-        print(f"+++ {__name__} __write_to_file() {content=}")
+        print(f"-- decorator_logger start __write_to_file() {content=}")
         async with a_open(ConnectorSettingsManager.file_name, "w") as w_connector_settings:
             await w_connector_settings.write(json.dumps(content, indent=2))
             await w_connector_settings.close()
+        print(f"-- decorator_logger end __write_to_file() {content=}")
 
     @staticmethod
+    @decorator_logger
     async def update_session_attribute(evse_id: int, connector_id: int, key, value):
         """
         Update session object/info of a certain connector.
@@ -410,6 +426,7 @@ class ConnectorSettingsManager:
             await ConnectorSettingsManager.__write_to_file(file)
 
     @staticmethod
+    @decorator_logger
     async def update_session(evse_id: int, connector_id: int, session_info: dict):
         """
         Update session info by parsing a dictionary with a structure and filled with desired values:
@@ -429,6 +446,7 @@ class ConnectorSettingsManager:
             await ConnectorSettingsManager.update_session_attribute(evse_id, connector_id, key, session_info[key])
 
     @staticmethod
+    @decorator_logger
     async def clear_session(evse_id: int, connector_id: int):
         """
         Clear session by inserting default values to the connectors.json file.
@@ -453,6 +471,7 @@ class ConnectorSettingsManager:
             await ConnectorSettingsManager.__write_to_file(file)
 
     @staticmethod
+    @decorator_logger
     async def find_connector_with_transaction_id(transaction_id) -> ChargingConnector:
         async with a_open(ConnectorSettingsManager.file_name, "r") as connector_settings:
             file = json.loads(await connector_settings.read())
