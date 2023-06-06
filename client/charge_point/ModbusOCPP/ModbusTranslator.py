@@ -203,7 +203,7 @@ class Modbus:
 
     def Connector0_DataFill(self, modbus_data: dict[str, int]):
 
-        # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.POWER_ACTIVE_IMPORT] = str(random.randint(100,200))
+        # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.POWER_ACTIVE_IMPORT] = str(modbus_data['EVSE_CHADEMO_EVSE_POWER'])
         # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CHARGE_POINT_MODEL]  = 'MODEL_NSTU' # 'CHAdeMO'
         # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.SOC]                 = str(modbus_data['ID_102_CHARGED_RATE']) # уровень заряда
         # md.from_micro[md.CONNECTOR_0_CHARGE_POINT][md.CURRENT_IMPORT]      = str(modbus_data['ID_109_PRESENT_CHARGING_CURRENT'])

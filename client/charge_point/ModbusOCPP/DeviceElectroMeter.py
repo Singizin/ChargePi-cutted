@@ -10,3 +10,10 @@ class cDeviceElectroMeter(DeviceBase.cDeviceBase):
         self.AddIrRegs(ElectroMeterRegisers.InputRegisters)
         self.AddHrRegs(ElectroMeterRegisers.HoldingRegisters)
         self.PrintAllRegs()
+
+    def ReadAllRegisters(self) -> bool:
+        result_dict = {}
+        if super().ReadAllRegisters() == True:
+            result_dict = self.GetAllRegistersAsDict()
+
+        return True

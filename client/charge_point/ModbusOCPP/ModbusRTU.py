@@ -20,7 +20,7 @@ class cModbusClient(Loggers.cDebugLogger):
                                 bytesize = 8, 
                                 parity = 'N' , 
                                 baudrate = _baudrate,
-                                timeout = 0.1,
+                                timeout = 0.2,
                                 strict = False # отключение жесткой паузы ожидания ответа (silent time)
                                 )
 
