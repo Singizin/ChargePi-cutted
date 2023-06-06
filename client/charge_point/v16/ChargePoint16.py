@@ -75,8 +75,8 @@ logger.setLevel(logging.DEBUG)
 
 # new file every minute
 rotation_logging_handler = TimedRotatingFileHandler('charge_point/logs/log',
-                               when='s',
-                               interval=10,
+                               when='m',
+                               interval=60,
                                backupCount=5)
 rotation_logging_handler.setLevel(logging.DEBUG)
 rotation_logging_handler.setFormatter(logging.Formatter(format))
@@ -126,9 +126,14 @@ class ChargePointV16(cp):
             self.__charging_configuration.get_configuration_variable_value("LocalListMaxLength") == "true")
         connectors = ConnectorSettingsManager.get_connectors_from_evse(1)
 
+        if sys.platform == 'win32':
+            SERIAL_PORT = 'COM7'
+        else:
+            SERIAL_PORT = 'dev/ttyS7'
+
         MODBUS_PARAM = [
             False,       # modbus_emulation,
-            'COM7',     # SERIAL_PORT,
+            SERIAL_PORT,     # SERIAL_PORT,
             19200       # BAUD
         ]
 

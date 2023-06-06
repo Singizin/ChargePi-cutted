@@ -76,6 +76,7 @@ class ChargingConnector:
         :param connector_timeout:
         :return:
         """
+        print(f"resume_charging() {session_info=}")
         try:
             _max_time_left = ((datetime.now() - datetime.fromisoformat(
                 session_info["started"])).seconds // 60) % 60

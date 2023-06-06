@@ -6,12 +6,12 @@
         {
           "id": 1,
           "type": "Schuko",
-          "status": "Charging",
+          "status": "Available",
           "session": {
             "is_active": true,
-            "transaction_id": "305",
-            "tag_id": "first",
-            "started": "2023-06-02T16:44:58.067966",
+            "transaction_id": "",
+            "tag_id": "",
+            "started": "",
             "consumption": []
           },
           "relay": {
@@ -33,9 +33,9 @@
           "status": "Available",
           "session": {
             "is_active": true,
-            "transaction_id": "301",
-            "tag_id": "Station",
-            "started": "2023-06-02T16:45:54.315345",
+            "transaction_id": "",
+            "tag_id": "",
+            "started": "",
             "consumption": []
           },
           "relay": {
